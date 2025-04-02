@@ -1,5 +1,3 @@
-# this is a group of beginner-friendly Skript code
-
 # helloWorld.sk
 command /hello:
   trigger:
@@ -24,27 +22,28 @@ command /feedme:
     set player's food level to 20
     send "&aYou are now saturated!"
 
-# smite.sk
+# smitefacing.sk
 command /smitefacing:
   permission: smite.use
   trigger:
-    strike lightning at target block
-    send "&9Smited at block"
+    strike lightning at block in front of player
+    send "&9Smited the block in front of you!"
+
+# smiteto.sk
 command /smiteto <player> [<boolean>]:
   permission: smite.use
   trigger:
     if arg-1 is not set:
-      send "&4[Error]: Missing Required Arguement: (>>'<player>'<< cannot be empty) did you forget to set a target?"
+      send "&4[Error]: Missing Required Argument: (>>'<player>'<< cannot be empty) did you forget to set a target?"
       stop
     if arg-1 is not online:
       send "&4[Error]: Target, '%arg-1%' is Offline"
       stop
     if arg-2 is set:
       if arg-2 is "true":
-        send "&4You&6 have been smited by &c%player%" to arg-1
-        send "&cYou&6 publicly smited &4%arg-1%" to player
-        send "&c%player%&6 smited &4%arg-1%"
+        send "&4You &6have been smited by &c%player%" to arg-1
+        send "&cYou &6publicly smited &4%arg-1%" to player
+        send "&c%player% &6smited &4%arg-1%" to all players
       if arg-2 is "false" or "":
-        send "&cYou&6 quietly smited &4%arg-1%"
-      strike lightning at arg-1
-      
+        send "&cYou &6quietly smited &4%arg-1%" to player
+    strike lightning at arg-1
