@@ -1,0 +1,3 @@
+command /hello:
+  trigger:
+    send "Hello, World!" to player
