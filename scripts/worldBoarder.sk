@@ -1,0 +1,102 @@
+# ============================================
+# --------------------------------------------
+#            World Border Fallout 1
+#           by SMg, Reach Studios NY
+# --------------------------------------------
+#:--------------General_Purpose---------------:
+#:World Border Fallout starts you out in a 3x3:
+#:world border, you can increase the size by  :
+#:taking damage, the amount of damage you take  :
+#:the amount of blocks it expands by            :
+#:______________________________________________:
+#
+#:-----------------How_to_Setup-----------------:
+#:To intitiate setup, type `/wbf1 start` and    :
+#:this will setup the world border, setting you :
+#:as the center, if there are any other players :
+#:in the server, they will be teleported to you :
+#:______________________________________________:
+#
+# ============================================
+
+# -------------------- Variables --------------------
+option world_border_radius: 3 # Initial border size
+option expansion_factor: 1 # Amount of blocks the border expands for each damage taken
+option max_border_size: 100 # Max size the world border can expand to
+option expansion_cooldown: 10 # Cooldown time (in seconds) between border expansions
+
+# -------------------- Global Variables -------------------
+global {_last_expansion_time} to 0 # Last expansion time to control cooldown
+global {_game_started} to false # Check if the mini-game has started
+global {_initial_border_size} to world_border_radius # Store the initial border size
+
+# ------------------ Commands ----------------------
+
+command /wbf1 start:
+    trigger:
+        # Start the game and set the border up
+        if {_game_started} is false:
+            set {_center} to location of player
+            set world border radius of world {_center} to world_border_radius
+            send "&7World Border Fallout has started! You are now the center." to player
+            
+            # Teleporting all players to the center
+            loop all players:
+                teleport loop-player to {_center}
+                send "&7You have been teleported to the center of World Border Fallout." to loop-player
+
+            # Set the game as started
+            set {_game_started} to true
+            set {_initial_border_size} to world_border radius of world {_center}
+        else:
+            send "&7The game has already started!" to player
+        stop
+
+command /wbf1 end:
+    trigger:
+        # End the game and give a summary
+        if {_game_started} is false:
+            send "&7The game hasn't started yet!" to player
+        else:
+            # Get the final border size
+            set {_final_border_size} to world border radius of world player
+            
+            # Calculate the progress
+            set {_border_expansion} to {_final_border_size} - {_initial_border_size}
+            
+            # Display the summary
+            send "&7The World Border Fallout game has ended!" to player
+            send "&7Initial border size: %{_initial_border_size}%" to player
+            send "&7Final border size: %{_final_border_size}%" to player
+            send "&7Border expanded by: %{_border_expansion}% blocks!" to player
+            
+            # Reset the game
+            set {_game_started} to false
+            send "&7The game has been reset. You can start a new game with /wbf1 start." to player
+
+# ------------------ Damage Handling ------------------
+on damage:
+    # Check if the game has started
+    if {_game_started} is false:
+        cancel event # Ignore all damage if the game hasn't started
+        send "&7The game hasn't started yet! No damage can be taken." to victim
+        stop
+    
+    # Ensure the damage is from a player, not mobs or the environment
+    if victim is a player:
+        # Check if enough time has passed since the last expansion (to prevent spamming)
+        if (current time - {_last_expansion_time}) > (expansion_cooldown * 1000):
+            set {_damage} to event-amount
+            set {_current_border_size} to world border radius of world event-world
+            
+            # Ensure the border size doesn't exceed the max size
+            if {_current_border_size} + (_damage * expansion_factor) <= max_border_size:
+                # Increase the border size based on damage taken
+                set world border radius of world event-world to {_current_border_size} + (_damage * expansion_factor)
+                send "&7The world border has expanded by %{_damage}% blocks!" to all players
+                set {_last_expansion_time} to current time
+            else:
+                send "&7The border has reached its maximum size and cannot expand further." to player
+        else:
+            # Cooldown message
+            send "&7The world border is on cooldown. Please wait before it can expand again." to player
