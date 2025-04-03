@@ -1,0 +1,12 @@
+on chat:
+    set {_name} to "%player%"
+    
+    if {_name} starts with ".":
+        set {_platform} to "Bedrock"
+        set {_name} to the subtext of {_name} from characters 2 to (the length of {_name})  # Removes the period by getting the part after it
+        set {_color} to "&9"  # Blue for Bedrock
+    else:
+        set {_platform} to "Java"
+        set {_color} to "&2"  # Green for Java
+    
+    set the chat format to "&7[%{_color}%%{_platform}%&7] %{_name}%:&f %message%"
