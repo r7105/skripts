@@ -1,15 +1,200 @@
-# ========================================
+# ==========================================
 #             Skript Essentials
 #       by SMg, Reach Studios New York
 # 
 # [04/04/25]       Progress       [06/??/25]
 # [-------------------0%-------------------]
 # Just Started - Estimated Finish by [06/25]
-# ----------------------------------------
+# Other Progresses:
+# ShopGUI  Recreation |  advancedmove Rec.
+# [---Not-Started---] | [---Not-Started---]
+# ------------------------------------------
 #
 #            General Purpose
 # Remake as much functionalities from 
 # ServerEssentialsX, from tpa's to invsee
-# and echest and whats possible in skript
+# and echest and whats possible in skript,
+# and make it more user friendly and add more
+# Utilites, from stuff like UltraCosmetics,
+# ShopGUI+, advancedmove and way more
 # -----------------------------------------
+#                Dependencies
+# SkBee, SkRayFall, TuSKe, SkUtilities, SharpSK
+# Optional Dependencies:
+# GeyserMC
+# ------------------------------------------
 # =========================================
+
+#===============TPA System=================
+# TPA System for Skript Essentials with Action Bar and Chime
+
+# Variables
+# {tpa::%player%} stores the player who sent the teleport request
+# {tpaTimeout::%player%} stores the time when the request expires
+
+command /tpa [<player>], /teleportask [<player>], /tpask [<player>]:
+    trigger:
+        if arg-1 is not set:
+            send "&cYou must specify a player to send a teleport request to!"
+            stop
+        if arg-1 is the player:
+            send "&cYou cannot send a teleport request to yourself!"
+            play sound "entity.villager.no" 
+            stop
+        if {tpa::%arg-1%} is set:
+            send "&cThis player already has a pending teleport request!"
+            stop
+        if {tpaToggle::%arg-1%} is true:
+            send "&cThis player has disabled teleport requests!"
+            stop
+        set {tpa::%arg-1%} to player
+        set {tpaTimeout::%arg-1%} to now
+        send "&aYou have sent a teleport request to &e%arg-1%&a."
+        send action bar "&ateleport request sent successfully, awaiting response" to %player%
+        send "&e%player% &ahas sent you a teleport request. Type &b/tpaccept &ato accept or &c/tpdeny &ato deny." to arg-1
+        play sound "block.note_block.pling" to arg-1 at volume 1 and pitch 2
+        send action bar "&e%player% &ahas sent you a teleport request!" to arg-1
+        wait 60 seconds
+        if {tpa::%arg-1%} is player:
+            delete {tpa::%arg-1%}
+            delete {tpaTimeout::%arg-1%}
+            send "&cYour teleport request to &e%arg-1%&c has expired."
+            send "&cThe teleport request from &e%player%&c has expired." to arg-1
+            play sound "item.trident.return" to player at volume 1 and pitch 1
+
+command /tpaccept, /teleportaccept:
+    trigger:
+        if {tpa::%player%} is not set and [tpahere::%player%] is not set:
+            send "&cYou have no pending teleport requests!"
+            play sound "block.stone.break" to player at volume 1 and pitch 1
+            stop
+        if {tpa::%player%} is set:
+            teleport {tpa::%player%} to player
+            send "&aYou have accepted the teleport request from &e%{tpa::%player%}%&a."
+            send "&e%player% &ahas accepted your teleport request."
+            play sound "entity.player.levelup" to player at volume 1 and pitch 1
+            delete {tpa::%player%}
+            delete {tpaTimeout::%player%}
+            stop
+        if {tpahere::%player%} is set:
+            teleport {tpahere::%player%} to player
+            send "&aYou have accepted the teleport request from &e%{tpahere::%player%}%&a."
+            send "&e%player% &ahas accepted your teleport request."
+            play sound "entity.player.levelup" to player at volume 1 and pitch 1
+            delete {tpahere::%player%}
+            delete {tpahereTimeout::%player%}
+            stop
+        send "&cYou have no pending teleport requests!"
+        play sound "block.stone.break" to player at volume 1 and pitch 1
+
+command /tpdeny, /tpno, /teleportdeny, /teleportno:
+    trigger:
+        if {tpa::%player%} is not set:
+            send "&cYou have no pending teleport requests!"
+            stop
+        send "&cYou have denied the teleport request from &e%{tpa::%player%}%&c."
+        send "&e%player% &chas denied your teleport request."
+        play sound "entity.villager.no" to player at volume 1 and pitch 1
+        delete {tpa::%player%}
+        delete {tpaTimeout::%player%}
+
+command /tpahere [<player>], /teleporthere [<player>], /tph [<player>]:
+    trigger:
+        if arg-1 is not set:
+            send "&cYou must specify a player to send a teleport request to!"
+            stop
+        if arg-1 is the player:
+            send "&cYou cannot send a teleport request to yourself!"
+            play sound "entity.villager.no"
+            stop
+        if {tpaToggle::%arg-1%} is true:
+            send "&cThis player has disabled teleport requests!"
+            play sound "entity.villager.no"
+            stop
+        if {tpahere::%arg-1%} is set:
+            send "&cThis player already has a pending teleport request!"
+            stop
+        set {tpahere::%arg-1%} to player
+        set {tpahereTimeout::%arg-1%} to now
+        send "&aYou have sent a teleport request to &e%arg-1%&a, asking them to teleport to you."
+        send action bar "&ateleport request sent successfully, awaiting response" to %player%
+        send "&e%player% &ahas requested you to teleport to them. Type &b/tpaccept &ato accept or &c/tpdeny &ato deny." to arg-1
+        play sound "block.note_block.pling" to arg-1 at volume 1 and pitch 2
+        send action bar "&e%player% &ahas requested you to teleport to them!" to arg-1
+        wait 60 seconds
+        if {tpahere::%arg-1%} is player:
+            delete {tpahere::%arg-1%}
+            delete {tpahereTimeout::%arg-1%}
+            send "&cYour teleport request to &e%arg-1%&c has expired."
+            send "&cThe teleport request from &e%player%&c has expired." to arg-1
+            play sound "item.trident.return" to player at volume 1 and pitch 1
+
+# Variable to track TPA toggle status
+# {tpaToggle::%player%} is true if the player has disabled TPA requests
+
+command /tpatoggle, /tptoggle:
+    trigger:
+        if {tpaToggle::%player%} is not set or {tpaToggle::%player%} is false:
+            set {tpaToggle::%player%} to true
+            send "&cYou have disabled teleport requests. Players can no longer send you TPA requests."
+        else:
+            set {tpaToggle::%player%} to false
+            send "&aYou have enabled teleport requests. Players can now send you TPA requests."
+
+command /invsee [<player>], /inventorysee [<player>], /viewinv [<player>]:
+    trigger:
+        if arg-1 is not set:
+            send "&cYou must specify a player to view their inventory!"
+            stop
+        if arg-1 is online:
+            open inventory of arg-1 to player
+            send "&aYou are now viewing &e%arg-1%'s &ainventory."
+        else:
+            set {_inv} to offline player's inventory from arg-1
+            if {_inv} is not set:
+                send "&cCould not find inventory data for &e%arg-1%&c."
+                stop
+            open {_inv} to player
+            send "&aYou are now viewing &e%arg-1%'s &ainventory (offline)."
+
+command /echest [<player>], /enderchest [<player>], /viewechest [<player>]:
+    trigger:
+        if arg-1 is not set:
+            open ender chest of player to player
+            send "&aYou are now viewing your ender chest."
+            stop
+        if arg-1 is online:
+            open ender chest of arg-1 to player
+            send "&aYou are now viewing &e%arg-1%'s &aender chest."
+        else:
+            set {_echest} to offline player's ender chest from arg-1
+            if {_echest} is not set:
+                send "&cCould not find ender chest data for &e%arg-1%&c."
+                stop
+            open {_echest} to player
+            send "&aYou are now viewing &e%arg-1%'s &aender chest. &7(offline)."
+
+command /craft, /workbench, /table:
+    trigger:
+        open crafting table to player
+        send "&aYou have opened a crafting table."
+
+command /anvil, /repair:
+    trigger:
+        open anvil to player
+        send "&aYou have opened an anvil."
+
+command /etable, /enchant, /enchantmenttable:
+    trigger:
+        open enchantment table to player
+        send "&aYou have opened an enchantment table."
+
+command /grindstone, /repairtool:
+    trigger:
+        open grindstone to player
+        send "&aYou have opened a grindstone."
+
+command /stonecutter, /cutstone:
+    trigger:
+        open stonecutter to player
+        send "&aYou have opened a stonecutter."

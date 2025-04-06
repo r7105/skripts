@@ -21,6 +21,7 @@
 
 # -------------------- Variables --------------------
 option world_border_radius: 3 # Initial border size
+
 option expansion_factor: 1 # Amount of blocks the border expands for each damage taken
 option max_border_size: 100 # Max size the world border can expand to
 option expansion_cooldown: 10 # Cooldown time (in seconds) between border expansions

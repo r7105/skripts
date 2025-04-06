@@ -1,0 +1,45 @@
+# Requires: Vault, SkQuery, TuSKe
+
+command /jobmenu:
+    trigger:
+        open virtual chest inventory with size 6 named "Job Menu" to player
+        set {_page} to 1
+        set {_jobs::*} to ... # Fetch the list of jobs (newest first)
+        set {_totalPages} to ceil(size of {_jobs::*} / 45)
+
+        # Populate job slots (1-45)
+        loop 45 times:
+            set {_index} to (loop-number + (45 * ({_page} - 1)))
+            if {_index} <= size of {_jobs::*}:
+                set {_job} to {_jobs::%{_index}%}
+                format slot (loop-number - 1) of player with paper named "Job %{_index}%" to close then run [execute player command "/viewjob %{_index}%"]
+
+        # Navbar (46-54)
+        format slot 46 of player with player's skull named "%player%" with lore "Jobs Completed: 0", "Jobs Failed: 0", "Jobs Canceled: 0", "Jobs Offered: 0", "Jobs Accepted: 0", "Jobs Finished: 0", "Top Boss: None" to close then run [execute player command "/playerdetails"]
+        format slot 48 of player with blue stained glass block named "Jump to First Page" to close then run [execute player command "/jobmenu 1"]
+        format slot 49 of player with blue stained glass pane named "Previous Page" to close then run [execute player command "/jobmenu %{_page} - 1"]
+        format slot 50 of player with paper named "Page %{_page}%/%{_totalPages}%"
+        format slot 51 of player with red stained glass pane named "Next Page" to close then run [execute player command "/jobmenu %{_page} + 1"]
+        format slot 52 of player with red stained glass block named "Jump to Last Page" to close then run [execute player command "/jobmenu %{_totalPages}%"]
+
+        stop
+
+command /playerdetails:
+    trigger:
+        open virtual chest inventory with size 4 named "Player Details" to player
+        # Add logic for showing player details
+
+command /viewjob [<index>]:
+    trigger:
+        send "Viewing job %{_index}%" to player
+        # Add logic for viewing a specific job
+
+command /requestjob:
+    trigger:
+        send "&aYou are now requesting a job!" to player
+        # Add logic for requesting a job (e.g., input details, payment, etc.)
+
+command /viewjobs:
+    trigger:
+        send "&aHere are the available jobs:" to player
+        # Add logic for viewing available jobs (e.g., list jobs, accept jobs, etc.)
